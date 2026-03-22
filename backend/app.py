@@ -1,14 +1,26 @@
 import streamlit as st
 import requests
+import pandas as pd
+
+# URL of your FastAPI backend
+BASE_URL = "http://127.0.0.1:8000"
 
 # Set page config
 st.set_page_config(page_title="Smart Inventory AI", layout="wide")
 
+# Connection Check
+try:
+    response = requests.get(f"{BASE_URL}/inventory")
+    response.raise_for_status()
+    inventory = response.json()
+except requests.exceptions.ConnectionError:
+    st.error("🔌 Backend is offline. Please start main.py!")
+    st.stop() # This stops the app from trying to run the rest and crashing
+except Exception as e:
+    inventory = []
+
 st.title("📦 Smart Inventory AI")
 st.subheader("Identify and Manage your stock with Gemini 2.5")
-
-# URL of your FastAPI backend
-BASE_URL = "http://127.0.0.1:8000"
 
 # --- SIDEBAR: UPLOAD ---
 with st.sidebar:
@@ -32,20 +44,39 @@ with st.sidebar:
 # --- MAIN AREA: VIEW INVENTORY ---
 st.header("📋 Current Inventory")
 
-if st.button("🔄 Refresh Inventory"):
-    response = requests.get(f"{BASE_URL}/inventory")
-    if response.status_code == 200:
-        inventory = response.json()
-        if not inventory:
-            st.info("Inventory is empty. Scan something!")
-        else:
-            # Display items in a nice table
-            for item in inventory:
-                with st.expander(f"{item['name']} (Qty: {item['quantity']})"):
-                    st.write(f"**Category:** {item['category']}")
-                    st.write(f"**Description:** {item['description']}")
-                    if st.button(f"🗑️ Delete {item['name']}", key=f"del_{item['id']}"):
-                        requests.delete(f"{BASE_URL}/inventory/{item['id']}")
-                        st.rerun()
+# Fetch inventory data
+response = requests.get(f"{BASE_URL}/inventory")
+
+if response.status_code == 200:
+    inventory = response.json()
+    
+    if not inventory:
+        st.info("Inventory is empty. Scan something to get started!")
     else:
-        st.error("Could not fetch inventory.")
+        # 1. Display as a clean Dataframe/Table
+        df = pd.DataFrame(inventory)
+        # Reorder and rename columns for the UI
+        df = df[["id", "name", "category", "quantity", "description"]]
+        st.dataframe(df, use_container_width=True, hide_index=True, column_config={"id": st.column_config.NumberColumn("ID", format="%d"),"quantity": st.column_config.NumberColumn("Qty", format="%d")})
+
+        # 2. Management Section (Delete/Update)
+        st.divider()
+        st.subheader("🛠️ Manage Items")
+        
+        # Create a dropdown to select an item to delete or view
+        item_names = {f"{i['name']} (ID: {i['id']})": i['id'] for i in inventory}
+        selected_item_label = st.selectbox("Select an item to manage:", options=list(item_names.keys()))
+        selected_id = item_names[selected_item_label]
+
+        col1, col2 = st.columns([1, 4])
+        with col1:
+            if st.button("🗑️ Delete Selected", type="primary"):
+                del_res = requests.delete(f"{BASE_URL}/inventory/{selected_id}")
+                if del_res.status_code == 200:
+                    st.success("Deleted!")
+                    st.rerun()
+        with col2:
+            st.caption("Warning: Deleting an item is permanent.")
+
+else:
+    st.error("Could not connect to the backend server.")
