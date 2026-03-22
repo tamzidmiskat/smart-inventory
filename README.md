@@ -26,7 +26,8 @@ This project is an automated inventory solution that uses the **Gemini 3 Flash**
    ```bash
    git clone [https://github.com/tamzidmiskat/smart-inventory.git](https://github.com/tamzidmiskat/smart-inventory.git)
 
-   Install dependencies: pip install -r requirements.txt
-   Set up your .env file with your Gemini API Key: GEMINI_API_KEY=your_key_here
-   Run the Backend: python main.py
-   Run the Frontend: streamlit run app.py
+
+Install dependencies: pip install -r requirements.txt
+Set up your .env file with your Gemini API Key: GEMINI_API_KEY=your_key_here
+Run the Backend: python main.py
+Run the Frontend: streamlit run app.py
