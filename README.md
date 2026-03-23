@@ -1,4 +1,3 @@
-```markdown
 # 📦 Smart Inventory AI
 
 An AI-powered inventory management system that uses **Computer Vision (Gemini 2.0 Flash)** to identify stock items from images and provides intelligent insights, such as recipe generation based on current stock.
