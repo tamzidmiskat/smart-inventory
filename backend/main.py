@@ -11,8 +11,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, Column, Integer, String, Text
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
-Base = declarative_base()
-
+from fastapi.middleware.cors import CORSMiddleware
 
 # --- DATABASE SETUP ---
 DATABASE_URL = "sqlite:///./inventory.db"
@@ -53,6 +52,13 @@ class InventoryItem(BaseModel):
     description: str
 
 app = FastAPI(title="Smart Inventory AI")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows your Streamlit app to connect
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # --- ROUTES ---
 

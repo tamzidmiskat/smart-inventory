@@ -2,42 +2,56 @@ import streamlit as st
 import requests
 import pandas as pd
 
-# URL of your FastAPI backend
-BASE_URL = "https://smart-inventory-pwof.onrender.com"
-
-# Set page config
+# 1. MUST BE THE FIRST STREAMLIT COMMAND
 st.set_page_config(page_title="Smart Inventory AI", layout="wide")
 
-# Connection Check
+# 2. DEFINING THE URL (Make sure this matches everywhere!)
+BASE_URL = "https://smart-inventory-pwof.onrender.com"
+
+# --- CONNECTION CHECK BUTTON ---
+with st.expander("🛠️ Debug: Check Backend Connection"):
+    if st.button("Ping Backend"):
+        try:
+            response = requests.get(f"{BASE_URL}/") 
+            if response.status_code == 200:
+                st.success(f"Connected! Backend says: {response.text}")
+            else:
+                st.error(f"Connected but got error: {response.status_code}")
+        except Exception as e:
+            st.error(f"Could not connect to backend: {e}")
+
+# 3. GLOBAL CONNECTION CHECK (Stops the app if Render is asleep)
 try:
-    response = requests.get(f"{BASE_URL}/inventory")
+    # Use a small timeout so the user doesn't wait forever if Render is down
+    response = requests.get(f"{BASE_URL}/inventory", timeout=5)
     response.raise_for_status()
     inventory = response.json()
-except requests.exceptions.ConnectionError:
-    st.error("🔌 Backend is offline. Please start main.py!")
-    st.stop() # This stops the app from trying to run the rest and crashing
+except (requests.exceptions.ConnectionError, requests.exceptions.HTTPError):
+    st.error("🔌 Backend is offline. Please wait 60 seconds for Render to 'wake up' and refresh the page.")
+    st.info("Note: Render Free Tier goes to sleep after 15 mins of inactivity.")
+    st.stop() 
 except Exception as e:
     inventory = []
 
+# --- UI HEADER ---
 st.title("📦 Smart Inventory AI")
 st.subheader("Identify and Manage your stock with Gemini 2.5 Flash")
 
 # --- SIDEBAR: UPLOAD ---
 with st.sidebar:
     st.header("Scan New Item")
-    uploaded_file = st.file_uploader("Upload an image of the item...", type=["jpg", "jpeg", "png"])
+    uploaded_file = st.file_uploader("Upload an image...", type=["jpg", "jpeg", "png"])
     
     if st.button("🚀 Identify & Save"):
         if uploaded_file is not None:
             with st.spinner("AI is thinking..."):
                 files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
+                # FIXED: Changed BACKEND_URL to BASE_URL
                 response = requests.post(f"{BASE_URL}/identify", files=files)
                 
                 if response.status_code == 200:
                     data = response.json()
                     st.success("✅ Item Successfully Scanned!")
-                    
-                    # Create a nice layout for the result
                     col1, col2 = st.columns(2)
                     with col1:
                         st.metric("Item Name", data['name'])
@@ -53,56 +67,46 @@ with st.sidebar:
 # --- MAIN AREA: VIEW INVENTORY ---
 st.header("📋 Current Inventory")
 
-# Fetch inventory data
-response = requests.get(f"{BASE_URL}/inventory")
-
-if response.status_code == 200:
-    inventory = response.json()
-    
+# We already fetched 'inventory' in the connection check above
+if inventory is not None:
     if not inventory:
         st.info("Inventory is empty. Scan something to get started!")
     else:
-        # 1. Display as a clean Dataframe/Table
         df = pd.DataFrame(inventory)
-        # Reorder and rename columns for the UI
-        df = df[["id", "name", "category", "quantity", "description"]]
-        st.dataframe(df, use_container_width=True, hide_index=True, column_config={"id": st.column_config.NumberColumn("ID", format="%d"),"quantity": st.column_config.NumberColumn("Qty", format="%d")})
+        if not df.empty:
+            df = df[["id", "name", "category", "quantity", "description"]]
+            st.dataframe(df, use_container_width=True, hide_index=True, 
+                         column_config={
+                             "id": st.column_config.NumberColumn("ID", format="%d"),
+                             "quantity": st.column_config.NumberColumn("Qty", format="%d")
+                         })
 
-        # 2. Management Section (Delete/Update)
-        st.divider()
-        st.subheader("🛠️ Manage Items")
-        
-        # Create a dropdown to select an item to delete or view
-        item_names = {f"{i['name']} (ID: {i['id']})": i['id'] for i in inventory}
-        selected_item_label = st.selectbox("Select an item to manage:", options=list(item_names.keys()))
-        selected_id = item_names[selected_item_label]
+            st.divider()
+            st.subheader("🛠️ Manage Items")
+            
+            item_names = {f"{i['name']} (ID: {i['id']})": i['id'] for i in inventory}
+            selected_item_label = st.selectbox("Select an item to manage:", options=list(item_names.keys()))
+            selected_id = item_names[selected_item_label]
 
-        col1, col2 = st.columns([1, 4])
-        with col1:
-            if st.button("🗑️ Delete Selected", type="primary"):
-                del_res = requests.delete(f"{BASE_URL}/inventory/{selected_id}")
-                if del_res.status_code == 200:
-                    st.success("Deleted!")
-                    st.rerun()
-        with col2:
-            st.caption("Warning: Deleting an item is permanent.")
-
-else:
-    st.error("Could not connect to the backend server.")
+            col1, col2 = st.columns([1, 4])
+            with col1:
+                if st.button("🗑️ Delete Selected", type="primary"):
+                    del_res = requests.delete(f"{BASE_URL}/inventory/{selected_id}")
+                    if del_res.status_code == 200:
+                        st.success("Deleted!")
+                        st.rerun()
+            with col2:
+                st.caption("Warning: Deleting an item is permanent.")
 
 # --- RECIPE GENERATION SECTION ---
 st.divider()
 st.header("🍳 AI Chef Recommendations")
-st.write("Let Gemini suggest a meal based on your current inventory!")
-
 if st.button("🪄 Generate Recipe", type="secondary"):
     with st.spinner("Gordon Ramsay is thinking..."):
         recipe_res = requests.get(f"{BASE_URL}/generate-recipe")
         if recipe_res.status_code == 200:
             recipe_data = recipe_res.json()
-            st.markdown("---")
             st.success("✨ AI Chef Recommendation")
-            # Using st.info or a container makes it stand out from the rest of the UI
             st.info(recipe_data['recipe'])
         else:
             st.error("Could not generate recipe. Check your backend.")
