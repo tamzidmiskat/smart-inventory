@@ -3,7 +3,7 @@ import requests
 import pandas as pd
 
 # URL of your FastAPI backend
-BASE_URL = "http://127.0.0.1:8000"
+BASE_URL = "https://smart-inventory-pwof.onrender.com"
 
 # Set page config
 st.set_page_config(page_title="Smart Inventory AI", layout="wide")
