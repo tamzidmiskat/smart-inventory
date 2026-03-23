@@ -1,33 +1,73 @@
+```markdown
 # 📦 Smart Inventory AI
-**AI-Powered Inventory Management System**
 
-This project is an automated inventory solution that uses the **Gemini 3 Flash** multimodal model to identify items via image uploads and store them in a structured database.
+An AI-powered inventory management system that uses **Computer Vision (Gemini 2.0 Flash)** to identify stock items from images and provides intelligent insights, such as recipe generation based on current stock.
 
-## 🚀 Features
-* **AI Identification:** Automatically extracts item name, category, and quantity from images.
-* **Structured Data:** Converts visual input into JSON and saves it to a database.
-* **Dual-Service Architecture:** FastAPI backend for logic and Streamlit for the user interface.
-* **Persistence:** Full CRUD capabilities with SQLite/SQLAlchemy.
+## 🚀 Live Demo
+* **Frontend:** [INSERT_YOUR_STREAMLIT_URL_HERE]
+* **API Backend:** [https://smart-inventory-pwof.onrender.com](https://smart-inventory-pwof.onrender.com)
+
+---
+
+## ✨ Features
+* **AI Item Identification:** Upload an image of a product, and Gemini automatically identifies the name, category, and suggests a quantity.
+* **Automated Logging:** Identified items are instantly saved to a persistent SQLite database.
+* **Inventory Dashboard:** A clean, searchable interface to view and manage (delete/update) stock.
+* **AI Chef:** One-click recipe generation that analyzes your current ingredients and suggests creative meals.
+* **Decoupled Architecture:** Separate FastAPI backend and Streamlit frontend for scalability.
+
+---
 
 ## 🛠️ Tech Stack
 * **Frontend:** Streamlit
-* **Backend:** FastAPI (Python)
-* **AI Model:** Gemini 3 Flash
-* **Database:** SQLite with SQLAlchemy ORM
-* **Version Control:** Git & GitHub
+* **Backend:** FastAPI
+* **AI Model:** Google Gemini 2.0 Flash
+* **Database:** SQLAlchemy with SQLite
+* **Deployment:** Render (Backend) & Streamlit Cloud (Frontend)
 
-## 📂 Project Structure
-* `main.py`: FastAPI server and AI logic.
-* `app.py`: Streamlit frontend application.
-* `requirements.txt`: Project dependencies.
+---
 
-## ⚙️ Setup Instructions
-1. Clone the repository:
-   ```bash
-   git clone [https://github.com/tamzidmiskat/smart-inventory.git](https://github.com/tamzidmiskat/smart-inventory.git)
+## ⚙️ Setup & Installation
 
+### 1. Prerequisites
+* Python 3.11+
+* A Google AI Studio API Key
 
-Install dependencies: pip install -r requirements.txt
-Set up your .env file with your Gemini API Key: GEMINI_API_KEY=your_key_here
-Run the Backend: python main.py
-Run the Frontend: streamlit run app.py
+### 2. Environment Variables
+Create a `.env` file in your backend folder:
+```bash
+GEMINI_API_KEY=your_actual_api_key_here
+```
+
+### 3. Installation
+```bash
+# Clone the repository
+git clone [https://github.com/your-username/smart-inventory.git](https://github.com/your-username/smart-inventory.git)
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the Backend
+python main.py
+
+# Run the Frontend
+streamlit run app.py
+```
+
+---
+
+## 📡 API Endpoints
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/inventory` | Fetch all items from the database |
+| `POST` | `/identify` | Upload image to identify and save item |
+| `DELETE` | `/inventory/{id}` | Remove an item by ID |
+| `GET` | `/generate-recipe` | Get AI-generated meal ideas |
+
+---
+
+## 💡 Assignment Highlights
+* **CORS Integration:** Configured middleware to allow secure communication between Streamlit and FastAPI.
+* **Pydantic Validation:** Used strict typing for API responses to ensure data integrity.
+* **Error Handling:** Robust try-except blocks to manage Render's "cold-start" behavior.
+```
