@@ -127,6 +127,30 @@ def update_item(item_id: int, updates: InventoryItem, db: Session = Depends(get_
     db.commit()
     return item
 
+@app.get("/generate-recipe")
+def generate_recipe(db: Session = Depends(get_db)):
+    # 1. Fetch all items from the database
+    items = db.query(DBItem).all()
+    if not items:
+        return {"recipe": "Your inventory is empty! Scan some ingredients first."}
+    
+    # 2. Create a list of ingredient names
+    ingredient_list = [item.name for item in items]
+    ingredients_str = ", ".join(ingredient_list)
+    
+    # 3. Ask Gemini to be a Chef
+    try:
+        prompt = f"I have the following ingredients: {ingredients_str}. Suggest a creative recipe I can make. Include a title, ingredients list, and brief steps. Keep it concise."
+        
+        response = client.models.generate_content(
+            model='gemini-2.5-flash', # Use the model you have configured
+            contents=prompt
+        )
+        
+        return {"recipe": response.text}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

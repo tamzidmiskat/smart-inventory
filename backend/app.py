@@ -20,7 +20,7 @@ except Exception as e:
     inventory = []
 
 st.title("📦 Smart Inventory AI")
-st.subheader("Identify and Manage your stock with Gemini 2.5")
+st.subheader("Identify and Manage your stock with Gemini 2.5 Flash")
 
 # --- SIDEBAR: UPLOAD ---
 with st.sidebar:
@@ -34,8 +34,17 @@ with st.sidebar:
                 response = requests.post(f"{BASE_URL}/identify", files=files)
                 
                 if response.status_code == 200:
-                    st.success("Item Identified & Saved!")
-                    st.json(response.json())
+                    data = response.json()
+                    st.success("✅ Item Successfully Scanned!")
+                    
+                    # Create a nice layout for the result
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.metric("Item Name", data['name'])
+                        st.metric("Category", data['category'])
+                    with col2:
+                        st.metric("Quantity", data['quantity'])
+                        st.write(f"**Description:** {data['description']}")
                 else:
                     st.error(f"Error: {response.text}")
         else:
@@ -80,3 +89,20 @@ if response.status_code == 200:
 
 else:
     st.error("Could not connect to the backend server.")
+
+# --- RECIPE GENERATION SECTION ---
+st.divider()
+st.header("🍳 AI Chef Recommendations")
+st.write("Let Gemini suggest a meal based on your current inventory!")
+
+if st.button("🪄 Generate Recipe", type="secondary"):
+    with st.spinner("Gordon Ramsay is thinking..."):
+        recipe_res = requests.get(f"{BASE_URL}/generate-recipe")
+        if recipe_res.status_code == 200:
+            recipe_data = recipe_res.json()
+            st.markdown("---")
+            st.success("✨ AI Chef Recommendation")
+            # Using st.info or a container makes it stand out from the rest of the UI
+            st.info(recipe_data['recipe'])
+        else:
+            st.error("Could not generate recipe. Check your backend.")
