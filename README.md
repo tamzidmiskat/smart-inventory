@@ -1,9 +1,9 @@
 # 📦 Smart Inventory AI
 
-An AI-powered inventory management system that uses **Computer Vision (Gemini 2.0 Flash)** to identify stock items from images and provides intelligent insights, such as recipe generation based on current stock.
+An AI-powered inventory management system that uses **Computer Vision (Gemini 2.5 Flash)** to identify stock items from images and provides intelligent insights, such as recipe generation based on current stock.
 
 ## 🚀 Live Demo
-* **Frontend:** [INSERT_YOUR_STREAMLIT_URL_HERE]
+* **Frontend:** https://smart-inventory-ugyvgwmndofzdzqlweumra.streamlit.app/
 * **API Backend:** [https://smart-inventory-pwof.onrender.com](https://smart-inventory-pwof.onrender.com)
 
 ---
@@ -20,7 +20,7 @@ An AI-powered inventory management system that uses **Computer Vision (Gemini 2.
 ## 🛠️ Tech Stack
 * **Frontend:** Streamlit
 * **Backend:** FastAPI
-* **AI Model:** Google Gemini 2.0 Flash
+* **AI Model:** Google Gemini 2.5 Flash
 * **Database:** SQLAlchemy with SQLite
 * **Deployment:** Render (Backend) & Streamlit Cloud (Frontend)
 
@@ -29,7 +29,7 @@ An AI-powered inventory management system that uses **Computer Vision (Gemini 2.
 ## ⚙️ Setup & Installation
 
 ### 1. Prerequisites
-* Python 3.11+
+* Python 3.13.12
 * A Google AI Studio API Key
 
 ### 2. Environment Variables
@@ -41,7 +41,7 @@ GEMINI_API_KEY=your_actual_api_key_here
 ### 3. Installation
 ```bash
 # Clone the repository
-git clone [https://github.com/your-username/smart-inventory.git](https://github.com/your-username/smart-inventory.git)
+git clone https://github.com/tamzidmiskat/smart-inventory.git
 
 # Install dependencies
 pip install -r requirements.txt
@@ -69,4 +69,3 @@ streamlit run app.py
 * **CORS Integration:** Configured middleware to allow secure communication between Streamlit and FastAPI.
 * **Pydantic Validation:** Used strict typing for API responses to ensure data integrity.
 * **Error Handling:** Robust try-except blocks to manage Render's "cold-start" behavior.
-```
